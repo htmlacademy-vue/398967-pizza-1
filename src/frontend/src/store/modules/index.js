@@ -1,13 +1,11 @@
-import Builder from "@/store/modules/builder.store";
-import Cart from "@/store/modules/cart.store";
-import Auth from "@/store/modules/auth.store";
-import Addresses from "@/store/modules/addresses.store";
-import Orders from "@/store/modules/orders.store";
+// Automatically imports all the modules and exports as a single module object
+const requireContext = require.context("../../modules/", true, /store\.js$/);
 
-export default {
-  Builder,
-  Cart,
-  Auth,
-  Addresses,
-  Orders,
-};
+export default requireContext.keys().reduce((modules, filename) => {
+  const moduleName = filename
+    .split("/")[1]
+    .replace(/^\w/, (c) => c.toUpperCase());
+  modules[moduleName] =
+    requireContext(filename).default || requireContext(filename);
+  return modules;
+}, {});
