@@ -5,20 +5,29 @@
         Конструктор пиццы
       </BaseTitle>
 
-      <BuilderDoughSelector @setPizzaDough="setPizzaOptions" />
+      <BuilderDoughSelector
+        :selectedDough="pizza.doughId"
+        @setPizzaDough="setPizzaOptions"
+      />
 
-      <BuilderSizeSelector @setPizzaSize="setPizzaOptions" />
+      <BuilderSizeSelector
+        :selectedSize="pizza.sizeId"
+        @setPizzaSize="setPizzaOptions"
+      />
 
       <BuilderIngredientsSelector
+        :ingredientsCounts="pizza.ingredients"
+        :selectedSauce="pizza.sauceId"
         @setPizzaSauce="setPizzaOptions"
         @setPizzaIngredient="setPizzaIngredients"
-        @setViewIngredients="setViewIngredients"
       />
 
       <div class="pizza-view">
         <BuilderPizzaView
           @setPizzaName="setPizzaOptions"
-          :pizzaViewIngredients="pizzaViewIngredients"
+          @draggElement="setPizzaIngredients"
+          :viewIngredients="pizza.ingredients"
+          :pizzaName="pizza.name"
         />
 
         <BuilderPriceCounter
@@ -90,6 +99,7 @@ export default {
 
   computed: {
     ...mapState("Builder", ["dough", "sizes", "sauces", "ingredients"]),
+    ...mapState("Cart", ["order"]),
 
     doughAmount() {
       const doughtPrice = this.dough.find((el) => el.id === this.pizza.doughId);
@@ -105,7 +115,7 @@ export default {
 
     priceModificator() {
       const size = this.sizes.find((el) => {
-        return el.id === this.pizza.sizeId;
+        return el.multiplier === this.pizza.sizeId;
       });
 
       return size?.multiplier || 1;
@@ -126,10 +136,30 @@ export default {
     },
 
     isPizzaisFull() {
-      const isElementFull = (e) => !!e;
+      const isElementFull = (e) => (Array.isArray(e) ? e.length : !!e);
 
       return Object.values(this.pizza).every(isElementFull);
     },
+  },
+
+  created() {
+    if (this.$route.query?.id) {
+      const currentPizza = this.order.pizzas[this.$route.query?.id];
+
+      if (!currentPizza) {
+        this.$router.replace("/");
+        return;
+      }
+
+      this.pizza.name = currentPizza.name;
+      this.pizza.sauceId = currentPizza.sauceId;
+      this.pizza.doughId = currentPizza.doughId;
+      this.pizza.sizeId = currentPizza.sizeId;
+      this.pizza.quantity = currentPizza.quantity;
+      this.pizza.ingredients = currentPizza.ingredients.map((el) => ({
+        ...el,
+      }));
+    }
   },
 
   methods: {
@@ -163,12 +193,13 @@ export default {
       }
     },
 
-    setViewIngredients(viewIngregients) {
-      this.pizzaViewIngredients = viewIngregients;
-    },
-
     makePizza() {
-      this.setPizza(this.pizza);
+      if (this.$route.query?.id) {
+        this.setPizza({ pizza: this.pizza, id: this.$route.query?.id });
+      } else {
+        this.setPizza({ pizza: this.pizza });
+      }
+
       this.$router.push("/cart");
     },
   },

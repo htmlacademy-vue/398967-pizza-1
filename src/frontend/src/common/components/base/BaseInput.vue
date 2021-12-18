@@ -5,11 +5,12 @@
     </span>
 
     <input
+      :disabled="disabled"
       :type="type"
       :name="name"
       :placeholder="placeholder"
       :required="required"
-      v-model="$attrs.value"
+      :value="value"
       @input="onInput"
     />
   </label>
@@ -53,6 +54,16 @@ export default {
     required: {
       type: Boolean,
       default: false,
+    },
+
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+
+    value: {
+      type: String,
+      default: "",
     },
   },
 

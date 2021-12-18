@@ -1,4 +1,5 @@
 import { SET_ENTITY, SET_ORDER_STATUS } from "@/store/mutations-types";
+import Vue from "vue";
 
 const setCount = (el) => (el.count = 0);
 const getDefaultState = () => {
@@ -8,19 +9,12 @@ const getDefaultState = () => {
       userId: "",
       pizzas: [],
       misc: [],
-      address: {
-        name: "",
-        street: "",
-        building: "",
-        flat: "",
-        comment: "",
-      },
+      address: null,
     },
     pizzas: [],
     options: [
       { value: 1, text: "Заберу сам" },
       { value: 2, text: "Новый адрес" },
-      { value: 3, text: "Дом" },
     ],
     totalAmount: 0,
   };
@@ -73,7 +67,17 @@ export default {
 
   mutations: {
     setOrderReceiving(state, receiving) {
-      state.order.address.name = receiving;
+      state.order.address = {
+        name: receiving,
+        street: "",
+        building: "",
+        flat: "",
+        comment: "",
+      };
+    },
+
+    setOrderAddressNull(state) {
+      state.order.address = null;
     },
 
     setPhone(state, phone) {
@@ -96,8 +100,12 @@ export default {
       state[list][id - 1].count = count;
     },
 
-    setPizza(state, pizza) {
-      state.order.pizzas.push(pizza);
+    setPizza(state, { pizza, id }) {
+      if (id) {
+        Vue.set(state.order.pizzas, id, pizza);
+      } else {
+        state.order.pizzas.push(pizza);
+      }
     },
 
     deletePizza(state, idx) {
@@ -132,6 +140,14 @@ export default {
           }
         });
       });
+    },
+
+    setCartOption(state, option) {
+      state.options.push(option);
+    },
+
+    setDefaultCartOptions(state, arr) {
+      state.options = arr;
     },
 
     resetState(state) {
